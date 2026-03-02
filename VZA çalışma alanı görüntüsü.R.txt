@@ -1,0 +1,75 @@
+
+install.packages("Benchmarking")
+install.packages("readxl")
+
+library(Benchmarking)
+library(readxl)
+
+remove.packages("Benchmarking")
+install.packages("Benchmarking", dependencies=TRUE)
+library(Benchmarking)
+
+file_path <- "C:/Users/ASUS/Downloads/Measuring the Effectiveness of White Goods Authorized Services of a Private Brand with Data Envelopment Analysis.xlsx"
+data_frame <- read_excel(file_path, sheet = "Sayfa2")
+
+install.packages("readxl", dependencies=TRUE)
+library(readxl)
+
+install.packages("openxlsx")
+library(openxlsx)
+
+data_frame <- read_excel(file_path, sheet = "Sayfa2")
+print(head(data_frame))
+class(data_frame)
+str(data_frame)
+dim(data_frame)
+excel_sheets(file_path)
+
+
+
+
+colnames(data_frame) <- gsub("[^[:alnum:] ]", "", colnames(data_frame))  # Özel karakterleri kaldır
+colnames(data_frame) <- gsub("\\s+", "_", colnames(data_frame))  # Boşlukları _ ile değiştir
+
+
+print("Sütun isimleri:")
+print(colnames(data_frame))
+
+colnames(data_frame) <- c("Names_of_Services", "Count_of_Workforce", "Repair_Income_Per_Month",
+                  "Score_of_Customer_Satisfying_Survey", "Percentage_of_Success")
+
+
+data_frame$Count_of_Workforce <- as.numeric(data_frame$Count_of_Workforce)
+data_frame$Repair_Income_Per_Month <- as.numeric(data_frame$Repair_Income_Per_Month)
+data_frame$Score_of_Customer_Satisfying_Survey <- as.numeric(data_frame$Score_of_Customer_Satisfying_Survey)
+data_frame$Percentage_of_Success <- as.numeric(data_frame$Percentage_of_Success)
+
+
+DMU <- data_frame$Names_of_Services  # Yetkili Servis İsimleri
+girdi <- as.matrix(data_frame[, c("Count_of_Workforce", "Repair_Income_Per_Month")])
+çıktı <- as.matrix(data_frame[, c("Score_of_Customer_Satisfying_Survey", "Percentage_of_Success")])
+
+if (any(is.na(girdi)) | any(is.na(çıktı))) {
+  stop("❌ Girdi veya çıktı matrisinde eksik değerler var! Lütfen eksik verileri kontrol edin.")
+}
+
+print("✅ Girdi ve çıktı matrisleri başarıyla oluşturuldu!")
+
+
+
+# CCR Modeli (Girdi Yönelimli)
+ccr_result <- dea(X = girdi, Y = çıktı, RTS = "crs", ORIENTATION = "in")
+print(ccr_result)
+
+# BCC Modeli (Girdi Yönelimli)
+bcc_result <- dea(X = girdi, Y = çıktı, RTS = "vrs", ORIENTATION = "in")
+print(bcc_result)
+
+
+eff_ccr <- eff(ccr_result)
+eff_bcc <- eff(bcc_result)
+
+
+results <- data.frame(DMU, Eff_CCR = eff_ccr, Eff_BCC = eff_bcc)
+print(results)
+print(results)
